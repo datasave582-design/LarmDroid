@@ -16,6 +16,7 @@ jobs:
       - run: cp nativ/*.java android/app/src/main/java/com/vikka/smartalarm/
       - run: python3 nativ/patch_manifest.py
       - run: npx cap sync android
+      - run: mkdir -p ~/.android && cp vikka.keystore ~/.android/debug.keystore
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
