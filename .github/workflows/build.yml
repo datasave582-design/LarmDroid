@@ -13,7 +13,7 @@ jobs:
         with: { distribution: temurin, java-version: 21 }
       - run: npm install
       - run: npx cap add android
-      - run: cp native/*.java android/app/src/main/java/com/vikka/smartalarm/
+      - run: cp nativ/*.java android/app/src/main/java/com/vikka/smartalarm/
       - run: python3 nativ/patch_manifest.py
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
