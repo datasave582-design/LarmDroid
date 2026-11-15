@@ -1,1 +1,285 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vikka Smart Alarm</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2f6bff"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#f4f5fb;--card:#fff;--tx:#12142a;--mu:#6b6f8d;--ac:#2f6bff;--pu:#8b5cf6;--ln:#e3e5f2;--rd:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0c1a;--card:#141733;--tx:#eef0ff;--mu:#9a9ec4;--ln:#262a52;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a0c1a;--card:#141733;--tx:#eef0ff;--mu:#9a9ec4;--ln:#262a52;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 "Segoe UI",system-ui,-apple-system,Roboto,"Noto Sans Devanagari",sans-serif;padding-bottom:84px}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:15px;margin:0 0 2px;color:var(--mu);font-weight:500}h2{font-size:18px;margin:18px 0 8px}
+.clock{font-size:56px;font-weight:700;letter-spacing:-2px;background:linear-gradient(90deg,var(--ac),var(--pu));-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:18px;padding:14px;margin:8px 0;display:flex;align-items:center;gap:12px}
+.card .g{flex:1;min-width:0}.big{font-size:26px;font-weight:650;font-variant-numeric:tabular-nums}.mu{color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;border:0;border-radius:14px;padding:11px 16px;background:var(--ac);color:#fff;font-weight:600;cursor:pointer}
+button.s{background:var(--card);color:var(--tx);border:1px solid var(--ln)}button.d{background:var(--rd)}button.i{padding:6px 10px;background:transparent;color:var(--mu);border:1px solid var(--ln)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--pu);outline-offset:2px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--ln);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+nav button{flex:1;min-width:0;overflow:hidden;background:none;color:var(--mu);padding:6px 0;font-size:9.5px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}nav button b{font-size:19px}nav button.on{color:var(--ac)}
+.sw{width:46px;height:26px;border-radius:13px;background:var(--ln);position:relative;padding:0;flex:none}.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}.sw.on{background:var(--ac)}.sw.on::after{left:23px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.cal div{padding:8px 0;border-radius:12px;font-size:14px;position:relative;cursor:pointer}.cal .h{color:var(--mu);font-size:12px;cursor:default}
+.cal .t{border:1.5px solid var(--ac)}.cal .sel{background:var(--ac);color:#fff}.dot{position:absolute;bottom:2px;left:50%;width:5px;height:5px;margin-left:-2px;border-radius:50%;background:var(--pu)}
+.pri-High{border-left:4px solid var(--rd)}.pri-Medium{border-left:4px solid #f5a524}.pri-Low{border-left:4px solid #3ecf8e}.od{color:var(--rd)}
+.ov{position:fixed;inset:0;background:rgba(5,6,20,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:560px;max-height:90%;overflow:auto;border-radius:24px 24px 0 0;padding:18px;animation:up .25s}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+input,select,textarea{width:100%;font:inherit;padding:11px;border-radius:12px;border:1px solid var(--ln);background:var(--bg);color:var(--tx)}
+.chk{display:inline-flex;align-items:center;gap:5px;margin:3px 10px 3px 0;color:var(--tx);font-size:14px}.chk input{width:auto}
+.ring{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 30%,#3b2a8f,#070918 70%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
+.ring .clock{font-size:84px;-webkit-text-fill-color:#fff;background:none;color:#fff}.ring.pulse .clock{animation:p 1s infinite}@keyframes p{50%{opacity:.5}}
+@keyframes br{50%{transform:scale(1.35)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:14px;z-index:60;font-size:14px}
+</style></head><body>
+<main id="m"></main><nav id="nav"></nav><div id="o"></div>
+<script>
+const $=s=>document.querySelector(s);
+const K='vikka_v1';
+const D={alarms:[],events:[],tasks:[],meds:[],goals:[],life:[],log:{},dhyan:{on:true,time:'05:30',dur:10,rec:''},fired:{},set:{lang:'hi',h24:false,theme:'auto',snooze:10,sound:'Chime',vib:true,wake:true}};
+let S=JSON.parse(JSON.stringify(D));
+try{const r=localStorage.getItem(K);if(r){const p=JSON.parse(r);S={...S,...p,set:{...D.set,...(p.set||{})}}}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}try{nativeSync()}catch(e){}};
+const I={en:{Home:'Home',Alarms:'Alarms',Calendar:'Calendar',Events:'Events',Tasks:'Tasks',Settings:'Settings',next:'Next alarm',none:'No alarm set',te:"Today's events",tt:"Today's tasks",nothing:'Nothing scheduled',add:'Add',save:'Save',cancel:'Cancel',del:'Delete',edit:'Edit',snooze:'Snooze',dismiss:'Dismiss',gm:'Good morning',ga:'Good afternoon',ge:'Good evening',tag:'Your Time. Your Events. Never Miss Anything.',od:'Overdue',pend:'Pending',done:'Completed',missed:'Missed alarm',Med:'Medicine',Goals:'Goals'},
+hi:{Home:'होम',Alarms:'अलार्म',Calendar:'कैलेंडर',Events:'इवेंट',Tasks:'कार्य',Settings:'सेटिंग्स',next:'अगला अलार्म',none:'कोई अलार्म नहीं',te:'आज के इवेंट',tt:'आज के कार्य',nothing:'कुछ निर्धारित नहीं',add:'जोड़ें',save:'सेव करें',cancel:'रद्द करें',del:'हटाएं',edit:'बदलें',snooze:'स्नूज़',dismiss:'बंद करें',gm:'सुप्रभात',ga:'नमस्कार',ge:'शुभ संध्या',tag:'आपका समय। आपके इवेंट। कुछ भी न छूटे।',od:'विलंबित',pend:'बाकी',done:'पूर्ण',missed:'छूटा अलार्म',Med:'दवा',Goals:'लक्ष्य'}};
+const T=k=>(I[S.set.lang]||I.en)[k]||k;
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const fmt=t=>{const[h,m]=t.split(':').map(Number);if(S.set.h24)return pad(h)+':'+pad(m);return((h+11)%12+1)+':'+pad(m)+' '+(h<12?'AM':'PM')};
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const REP=['once','daily','weekdays','weekends','custom','weekly','monthly'],EREP=['none','daily','weekly','monthly','yearly'];
+const CATS=['Birthday','Anniversary','Meeting','Family','Business','Travel','Payment','Medical Appointment','Other'];
+const SOUNDS=['Chime','Beep','Pulse','Bell'];
+const REMS=[[1440,'1 day before'],[120,'2 hours before'],[30,'30 minutes before'],[0,'At event time']];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let tab='home',calM=new Date(),calSel=ymd(new Date());
 
+function alarmOn(a,d){const w=d.getDay(),r=a.rep;
+ if(r==='daily')return true;if(r==='weekdays')return w>0&&w<6;if(r==='weekends')return w===0||w===6;
+ if(r==='custom')return(a.days||[]).includes(w);
+ const b=a.date?pd(a.date):null;if(!b)return false;
+ if(r==='once')return ymd(d)===a.date;if(r==='weekly')return d>=b&&b.getDay()===w;if(r==='monthly')return d>=b&&b.getDate()===d.getDate();return false}
+function eventOn(e,d){const b=pd(e.date);if(d<b)return false;const r=e.rep;
+ if(r==='none')return ymd(d)===e.date;if(r==='daily')return true;if(r==='weekly')return b.getDay()===d.getDay();
+ if(r==='monthly')return b.getDate()===d.getDate();if(r==='yearly')return b.getDate()===d.getDate()&&b.getMonth()===d.getMonth();return false}
+function nextAlarm(){const n=new Date();let best=null;
+ S.alarms.filter(a=>a.on).forEach(a=>{for(let i=0;i<400;i++){const d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+i);
+  if(!alarmOn(a,d))continue;const[h,m]=a.time.split(':').map(Number);d.setHours(h,m,0,0);
+  if(d>n){if(!best||d<best.at)best={a,at:d};break}}});return best}
+
+/* ---------- ring engine (works while app/tab is open; native AlarmManager needed for closed app) ---------- */
+let ctx,beepT,ringing=null;
+function tone(kind){try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();const f={Chime:880,Beep:1000,Pulse:660,Bell:1320}[kind]||880;
+ const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;o.type=kind==='Bell'?'triangle':'sine';o.connect(g);g.connect(ctx.destination);
+ g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.4,ctx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.5);o.start();o.stop(ctx.currentTime+.55)}catch(e){}}
+function ring(title,sound,vib,aid,ex){if(ringing)return;ex=ex||{};ringing={title,sound,vib,aid,ex};
+ notify(title);
+ const n=new Date();const el=document.createElement('div');el.className='ring pulse';el.id='ring';
+ el.innerHTML=`<div class="clock">${fmt(pad(n.getHours())+':'+pad(n.getMinutes()))}</div><div style="font-size:24px;font-weight:600">${esc(title)}</div><div style="opacity:.7">${n.toLocaleDateString(S.set.lang==='hi'?'hi-IN':'en-US',{weekday:'long',day:'numeric',month:'long'})}</div>
+ <div class="row" style="justify-content:center;margin-top:16px">${[5,10,15,30].map(m=>`<button class="s" data-sn="${m}">${m} min</button>`).join('')}</div>${ex.info?`<div style="font-size:22px">${ex.info}</div>`:''}<button class="d" data-dis style="font-size:20px;padding:16px 48px;margin-top:10px">${ex.btn||T('dismiss')}</button>`;
+ document.body.appendChild(el);const go=()=>{if(!ex.rec&&!ex.say)tone(sound);if(vib&&navigator.vibrate)navigator.vibrate([400,200,400])};go();beepT=setInterval(go,1500);if(ex.rec){ringAu=new Audio(ex.rec);ringAu.loop=true;ringAu.play().catch(()=>{})}else if(ex.say){tone(sound);sayLoop(ex.say)}}
+function stopRing(){clearInterval(beepT);clearInterval(sayT);try{ringAu&&ringAu.pause();speechSynthesis.cancel()}catch(e){}ringAu=null;navigator.vibrate&&navigator.vibrate(0);$('#ring')?.remove();ringing=null}
+document.addEventListener('click',e=>{const t=e.target;
+ if(t.dataset.dis!==undefined){const _x=ringing&&ringing.ex;if(_x&&_x.onDone)_x.onDone();const a=S.alarms.find(x=>x.id===ringing?.aid);if(a&&a.rep==='once')a.on=false;save();stopRing();render()}
+ if(t.dataset.sn){const r=ringing,m=+t.dataset.sn;stopRing();S.alarms.push({id:uid(),time:'',snoozeAt:Date.now()+m*60000,title:r.title,sound:r.sound,vib:r.vib,exd:r.ex&&r.ex.data,rep:'snooze'});save()}});
+function tick(){const n=new Date(),key=ymd(n)+pad(n.getHours())+pad(n.getMinutes());
+ S.alarms.filter(a=>a.rep==='snooze'&&Date.now()>=a.snoozeAt).forEach(a=>{S.alarms=S.alarms.filter(x=>x!==a);save();ring(a.title,a.sound,a.vib,null,a.exd&&mkEx(a.exd))});
+ S.alarms.forEach(a=>{if(!a.on||a.rep==='snooze'||!alarmOn(a,n))return;const fk=a.id+ymd(n)+a.time;if(!ringing&&due(a.time,n)&&!S.fired[fk]){S.fired[fk]=1;save();ring(a.title||'Alarm',a.sound,a.vib,a.id,a.rec?{rec:a.rec}:null)}});
+ for(let off=0;off<2;off++){const d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+off);
+  S.events.forEach(e=>{if(!eventOn(e,d))return;const[h,m]=e.time.split(':').map(Number);const at=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,m).getTime();
+   (e.rem||[]).forEach(r=>{const fk='e'+e.id+ymd(d)+r;if(!S.fired[fk]&&Date.now()>=at-r*60000&&Date.now()<at-r*60000+600000){S.fired[fk]=1;save();ring('📅 '+e.title+(r?' ('+REMS.find(x=>x[0]===r)[1]+')':''),S.set.sound,S.set.vib,null)}})})}
+ S.tasks.forEach(t=>{if(t.done||!t.date)return;const fk='t'+t.id,at=new Date(t.date+'T'+(t.time||'09:00')).getTime();if(!S.fired[fk]&&Date.now()>=at&&Date.now()<at+60000){S.fired[fk]=1;save();ring('✅ '+t.title,S.set.sound,S.set.vib,null)}});
+ medTick(n);const c=$('#clk');if(c){c.textContent=fmt(pad(n.getHours())+':'+pad(n.getMinutes()));$('#cd').textContent=cdText()}}
+function cdText(){const x=nextAlarm();if(!x)return T('none');const s=Math.floor((x.at-new Date())/1000);return `${x.a.title||'Alarm'} · ${fmt(x.a.time)} · ${Math.floor(s/3600)}h ${pad(Math.floor(s%3600/60))}m ${pad(s%60)}s`}
+
+/* ---------- forms ---------- */
+function sheet(title,fields,data,onSave){const o=$('#o');
+ const f=fields.map(([k,l,t,opt])=>{const v=data[k];let h='';
+  if(t==='select')h=`<select name="${k}">${opt.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('')}</select>`;
+  else if(t==='check')h=`<label class="chk"><input type="checkbox" name="${k}" ${v?'checked':''}>${l}</label>`;
+  else if(t==='days')h=DAYS.map((d,i)=>`<label class="chk"><input type="checkbox" name="${k}" value="${i}" ${(v||[]).includes(i)?'checked':''}>${d}</label>`).join('');
+  else if(t==='rem')h=REMS.map(([m,n])=>`<label class="chk"><input type="checkbox" name="${k}" value="${m}" ${(v||[]).includes(m)?'checked':''}>${n}</label>`).join('');
+  else if(t==='rec')h=recUI(v);else if(t==='area')h=`<textarea name="${k}" rows="2">${esc(v)}</textarea>`;
+  else h=`<input name="${k}" type="${t}" ${t==='number'?'step="any" ':''}value="${esc(v)}">`;
+  return t==='check'?h:`<label>${l}</label>${h}`}).join('');
+ o.innerHTML=`<div class="ov"><form class="sheet"><h2 style="margin-top:0">${title}</h2>${f}<div class="row" style="margin-top:16px"><button>${T('save')}</button><button type="button" class="s" data-x>${T('cancel')}</button></div></form></div>`;
+ const fm=o.querySelector('form');fm.onclick=e=>{if(e.target.dataset.x!==undefined)o.innerHTML=''};
+ fm.onsubmit=e=>{e.preventDefault();const out={};fields.forEach(([k,,t])=>{const els=[...fm.elements[k]?(fm.elements[k].length&&t!=='select'&&t!=='text'?fm.elements[k]:[fm.elements[k]]):[]];
+  out[k]=t==='check'?els[0].checked:t==='days'||t==='rem'?els.filter(x=>x.checked).map(x=>+x.value):els[0].value});
+  if(!out.title&&fields.some(f=>f[0]==='title'))out.title=title;onSave(out);save();o.innerHTML='';render()}}
+function askNotif(){try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission()}catch(e){}}
+function alarmForm(a){askNotif();const n=new Date(),d=a||{id:uid(),time:pad(n.getHours())+':'+pad((n.getMinutes()+1)%60),date:ymd(n),title:'',rep:'once',days:[],sound:S.set.sound,vib:S.set.vib,on:true};
+ sheet(a?T('edit'):T('add')+' '+T('Alarms'),[['title','Title','text'],['time','Time','time'],['date','Date (for once / weekly / monthly)','date'],['rep','Repeat','select',REP],['days','Custom weekdays','days'],['sound','Ringtone','select',SOUNDS],['rec','My voice recording (optional)','rec'],['vib','Vibration','check']],d,o=>{Object.assign(d,o);d.on=true;if(!a)S.alarms.push(d)})}
+function eventForm(e,date){const d=e||{id:uid(),title:'',desc:'',date:date||ymd(new Date()),time:'09:00',cat:'Other',rem:[30,0],rep:'none',notes:''};askNotif();
+ sheet(e?T('edit'):T('add')+' '+T('Events'),[['title','Title','text'],['desc','Description','text'],['date','Date','date'],['time','Time','time'],['cat','Category','select',CATS],['rem','Reminders','rem'],['rep','Repeat','select',EREP],['notes','Notes','area']],d,o=>{Object.assign(d,o);if(!e)S.events.push(d)})}
+function taskForm(t){const d=t||{id:uid(),title:'',date:ymd(new Date()),time:'18:00',pri:'Medium',done:false};askNotif();
+ sheet(t?T('edit'):T('add')+' '+T('Tasks'),[['title','Task','text'],['date','Date','date'],['time','Time','time'],['pri','Priority','select',['Low','Medium','High']]],d,o=>{Object.assign(d,o);if(!t)S.tasks.push(d)})}
+
+/* ---------- views ---------- */
+const alarmCard=a=>`<div class="card"><div class="g"><div class="big">${fmt(a.time)}</div><div class="mu">${esc(a.title)||'Alarm'} · ${a.rep}${a.rep==='custom'?' '+(a.days||[]).map(i=>DAYS[i]).join(','):''}${a.date&&a.rep!=='daily'?' · '+a.date:''}</div></div>
+ <button class="i" data-ea="${a.id}">✎</button><button class="i" data-da="${a.id}">🗑</button><button class="sw ${a.on?'on':''}" data-ta="${a.id}" aria-label="toggle"></button></div>`;
+const evCard=e=>`<div class="card"><div class="g"><b>${esc(e.title)}</b><div class="mu">${e.cat} · ${e.date} ${fmt(e.time)}${e.rep!=='none'?' · '+e.rep:''}</div>${e.desc?`<div class="mu">${esc(e.desc)}</div>`:''}</div><button class="i" data-ee="${e.id}">✎</button><button class="i" data-de="${e.id}">🗑</button></div>`;
+const taCard=t=>{const od=!t.done&&new Date(t.date+'T'+(t.time||'23:59'))<new Date();return `<div class="card pri-${t.pri}"><button class="sw ${t.done?'on':''}" data-tt="${t.id}" aria-label="done"></button><div class="g"><b style="${t.done?'text-decoration:line-through;opacity:.6':''}">${esc(t.title)}</b><div class="mu ${od?'od':''}">${od?T('od')+' · ':''}${t.date} ${fmt(t.time||'00:00')} · ${t.pri}</div></div><button class="i" data-et="${t.id}">✎</button><button class="i" data-dt="${t.id}">🗑</button></div>`};
+const sw=(k,v)=>`<div class="card"><div class="g">${k}</div><button class="sw ${v?'on':''}" data-set="${k}"></button></div>`;
+function render(){const n=new Date(),td=ymd(n);let h='';
+ if(tab==='home'){const g=n.getHours()<12?T('gm'):n.getHours()<17?T('ga'):T('ge');
+  const te=S.events.filter(e=>eventOn(e,n)),tt=S.tasks.filter(t=>!t.done&&t.date<=td);
+  h=`<h1>${g}</h1><div class="clock" id="clk"></div><div class="mu">${n.toLocaleDateString(S.set.lang==='hi'?'hi-IN':'en-US',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+  <div class="card" style="margin-top:14px"><div class="g"><div class="mu">${T('next')}</div><div id="cd" style="font-weight:600"></div></div></div>
+  <div class="row"><button data-q="a">⏰ ${T('Alarms')}</button><button data-q="e">📅 ${T('Events')}</button><button data-q="t">✅ ${T('Tasks')}</button></div>
+  ${homeExtra()}<h2>${T('te')}</h2>${te.map(evCard).join('')||`<div class="mu">${T('nothing')}</div>`}<h2>${T('tt')}</h2>${tt.map(taCard).join('')||`<div class="mu">${T('nothing')}</div>`}<p class="mu" style="margin-top:24px">${T('tag')}</p>`}
+ if(tab==='alarms')h=`<h2 style="margin-top:0">${T('Alarms')}</h2><button data-q="a">+ ${T('add')}</button>${S.alarms.filter(a=>a.rep!=='snooze').sort((a,b)=>a.time.localeCompare(b.time)).map(alarmCard).join('')||`<p class="mu">${T('none')}</p>`}`;
+ if(tab==='events')h=`<h2 style="margin-top:0">${T('Events')}</h2><button data-q="e">+ ${T('add')}</button>${[...S.events].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(evCard).join('')||`<p class="mu">${T('nothing')}</p>`}`;
+ if(tab==='tasks'){const p=S.tasks.filter(t=>!t.done),c=S.tasks.filter(t=>t.done);h=`<h2 style="margin-top:0">${T('Tasks')}</h2><button data-q="t">+ ${T('add')}</button><h2>${T('pend')} (${p.length})</h2>${p.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(taCard).join('')}<h2>${T('done')} (${c.length})</h2>${c.map(taCard).join('')}`}
+ if(tab==='calendar'){const y=calM.getFullYear(),m=calM.getMonth(),f=new Date(y,m,1).getDay(),dm=new Date(y,m+1,0).getDate();
+  let cells=DAYS.map(d=>`<div class="h">${d}</div>`).join('')+'<div></div>'.repeat(f);
+  for(let i=1;i<=dm;i++){const d=new Date(y,m,i),s=ymd(d),has=S.events.some(e=>eventOn(e,d))||S.alarms.some(a=>a.on&&a.rep!=='snooze'&&alarmOn(a,d));cells+=`<div data-d="${s}" class="${s===td?'t':''} ${s===calSel?'sel':''}">${i}${has?'<i class="dot"></i>':''}</div>`}
+  const sd=pd(calSel);h=`<div class="row" style="justify-content:space-between;align-items:center"><button class="s" data-m="-1">‹</button><b>${calM.toLocaleDateString(S.set.lang==='hi'?'hi-IN':'en-US',{month:'long',year:'numeric'})}</b><button class="s" data-m="1">›</button></div><div class="cal" style="margin:12px 0">${cells}</div>
+  <div class="row" style="justify-content:space-between;align-items:center"><h2>${calSel}</h2><button data-q="e" data-date="${calSel}">+ ${T('Events')}</button></div>
+  ${S.events.filter(e=>eventOn(e,sd)).map(evCard).join('')}${S.alarms.filter(a=>a.on&&a.rep!=='snooze'&&alarmOn(a,sd)).map(alarmCard).join('')}`}
+ if(tab==='settings'){const s=S.set;h=`<h2 style="margin-top:0">${T('Settings')}</h2>
+  <div class="card"><div class="g">Language</div><select id="sl" style="width:auto"><option value="en" ${s.lang==='en'?'selected':''}>English</option><option value="hi" ${s.lang==='hi'?'selected':''}>हिन्दी</option></select></div>
+  <div class="card"><div class="g">Theme</div><select id="st" style="width:auto">${['auto','light','dark'].map(x=>`<option ${s.theme===x?'selected':''}>${x}</option>`)}</select></div>
+  <div class="card"><div class="g">Default sound</div><select id="ss" style="width:auto">${SOUNDS.map(x=>`<option ${s.sound===x?'selected':''}>${x}</option>`)}</select><button class="i" data-test>▶</button></div>
+  <div class="card"><div class="g">Default snooze (min)</div><select id="sn" style="width:auto">${[5,10,15,30].map(x=>`<option ${s.snooze===x?'selected':''}>${x}</option>`)}</select></div>
+  ${sw('24-hour clock',s.h24)}${sw('Vibration',s.vib)}${sw('Keep screen on',s.wake)}
+  <div class="card"><div class="g">Notifications: <b>${'Notification' in window?Notification.permission:'unsupported'}</b><div class="mu">Keep Vikka open with screen on and volume up. A web app cannot guarantee a ring when the phone is locked or the app is closed; that needs the native Android build.</div></div><button class="s" data-notif>Allow</button></div>
+  <h2>Data</h2><div class="row"><button class="s" data-exp>Export JSON</button><label class="s" style="margin:0;padding:11px 16px;border-radius:14px;border:1px solid var(--ln);color:var(--tx);cursor:pointer">Import<input type="file" id="imp" accept=".json" hidden></label><button class="d" data-clr>Clear all data</button></div>
+  <p class="mu">Vikka Smart Alarm · v1.0 · data stays on this device</p>`}
+ if(tab==='med')h=viewMed();if(tab==='goals')h=viewGoals();$('#m').innerHTML=h;
+ $('#nav').innerHTML=[['home','⌂'],['alarms','⏰'],['med','💊'],['goals','🎯'],['calendar','▦'],['events','★'],['tasks','✓'],['settings','⚙']].map(([k,i])=>`<button class="${tab===k?'on':''}" data-tab="${k}"><b>${i}</b>${T(k[0].toUpperCase()+k.slice(1))}</button>`).join('');
+ const th=S.set.theme;th==='auto'?document.documentElement.removeAttribute('data-theme'):document.documentElement.setAttribute('data-theme',th);tick()}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2500)}
+document.addEventListener('click',e=>{const d=e.target.closest('[data-tab],[data-q],[data-ea],[data-da],[data-ta],[data-ee],[data-de],[data-et],[data-dt],[data-tt],[data-d],[data-m],[data-set],[data-exp],[data-clr],[data-test],[data-notif]');if(!d)return;const x=d.dataset;
+ if(x.tab){tab=x.tab;render()}
+ else if(x.q==='a')alarmForm();else if(x.q==='e')eventForm(null,x.date);else if(x.q==='t')taskForm();
+ else if(x.ea)alarmForm(S.alarms.find(a=>a.id===x.ea));else if(x.da){S.alarms=S.alarms.filter(a=>a.id!==x.da);save();render()}
+ else if(x.ta){const a=S.alarms.find(a=>a.id===x.ta);a.on=!a.on;save();render()}
+ else if(x.ee)eventForm(S.events.find(a=>a.id===x.ee));else if(x.de){S.events=S.events.filter(a=>a.id!==x.de);save();render()}
+ else if(x.et)taskForm(S.tasks.find(a=>a.id===x.et));else if(x.dt){S.tasks=S.tasks.filter(a=>a.id!==x.dt);save();render()}
+ else if(x.tt){const t=S.tasks.find(a=>a.id===x.tt);t.done=!t.done;save();render()}
+ else if(x.d){calSel=x.d;render()}else if(x.m){calM=new Date(calM.getFullYear(),calM.getMonth()+ +x.m,1);render()}
+ else if(x.set){const k={'Vibration':'vib','Keep screen on':'wake'}[x.set]||'h24';S.set[k]=!S.set[k];save();render();lock()}
+ else if(d.hasAttribute('data-test'))tone(S.set.sound);
+ else if(d.hasAttribute('data-notif')){try{Notification.requestPermission().then(render)}catch(e){toast('Not supported')}}
+ else if(d.hasAttribute('data-exp')){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='vikka-backup.json';a.click()}
+ else if(d.hasAttribute('data-clr')){if(confirm('Delete ALL alarms, events, tasks and settings? This cannot be undone.')){S=JSON.parse(JSON.stringify(D));save();render()}}});
+document.addEventListener('change',e=>{const t=e.target,m={sl:['lang',v=>v],st:['theme',v=>v],ss:['sound',v=>v],sn:['snooze',v=>+v]}[t.id];
+ if(m){S.set[m[0]]=m[1](t.value);save();render()}
+ if(t.id==='imp'&&t.files[0]){t.files[0].text().then(x=>{try{const p=JSON.parse(x);if(!Array.isArray(p.alarms))throw 0;S={...D,...p,set:{...D.set,...(p.set||{})}};save();render();toast('Restored')}catch(_){toast('Invalid backup file')}})}});
+/* ===== Meditation, Medicine, Goals, Voice ===== */
+const H=(e,h)=>S.set.lang==='hi'?h:e;
+const L=d=>{const o=S.log[d]=S.log[d]||{};o.m=o.m||{};o.g=o.g||{};o.d=o.d||0;return o};
+const Q=[["Small steps every day lead to big change.","रोज़ का छोटा कदम बड़ी मंज़िल तक ले जाता है।"],["Don't wait for motivation. Start, and it follows.","प्रेरणा का इंतज़ार मत करो, शुरू करो।"],["What you do today shapes who you become.","आज का काम कल की पहचान बनेगा।"],["Progress, not perfection.","परफेक्शन नहीं, बस प्रगति।"],["A calm mind finishes what a busy mind only plans.","शांत मन वो पूरा करता है जो व्यस्त मन सिर्फ़ सोचता है।"],["Health comes before every other goal.","हर लक्ष्य से पहले सेहत है।"],["Today is day one.","आज ही पहला दिन है।"]];
+const quote=()=>{const q=Q[Math.floor(Date.now()/864e5)%Q.length];return H(q[0],q[1])};
+const UH={ml:'एम एल',tablet:'गोली',mg:'मिलीग्राम',drops:'बूंद'};
+const medTimes=m=>[m.t1,m.t2,m.t3].filter(Boolean);
+function medActive(m,td){const s=m.start||td,x=pd(s);x.setDate(x.getDate()+(m.days||0));return td>=s&&(!m.days||td<ymd(x))}
+function due(t,n,w){w=w||10;const[h,m]=t.split(':').map(Number),df=n.getHours()*60+n.getMinutes()-(h*60+m);return df>=0&&df<w}
+function streak(){let c=0,d=new Date();const g=x=>((S.log[ymd(x)]||{}).d||0)>0;if(!g(d))d.setDate(d.getDate()-1);while(g(d)){c++;d.setDate(d.getDate()-1)}return c}
+let sayT,ringAu,mT,mEnd,mStart;
+function sayLoop(t){const s=()=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=S.set.lang==='hi'?'hi-IN':'en-US';speechSynthesis.speak(u)}catch(e){}};s();sayT=setInterval(s,9000)}
+function notify(t){try{if(Notification.permission!=='granted')return;if(navigator.serviceWorker)navigator.serviceWorker.ready.then(r=>r.showNotification('Vikka',{body:t,icon:'icons/icon-192.png',vibrate:[300,150,300],requireInteraction:true,tag:'vikka'}));else new Notification('Vikka',{body:t})}catch(e){}}
+let wl;async function lock(){try{if(S.set.wake&&'wakeLock' in navigator&&!document.hidden)wl=await navigator.wakeLock.request('screen')}catch(e){}}
+function mkEx(d){const e={data:d},td=()=>ymd(new Date());
+ if(d.k==='dh'){e.info=S.dhyan.dur+' min';e.btn='🧘 '+H('Start','शुरू करें');e.rec=S.dhyan.rec;e.say=H('Time to meditate.','ध्यान का समय हो गया है।');e.onDone=()=>startMed(S.dhyan.dur)}
+ if(d.k==='md'){const m=S.meds.find(x=>x.id===d.id);if(!m)return e;e.info=esc(m.name)+' · '+m.dose+' '+m.unit;e.btn='✔ '+H('Medicine taken','दवा ले ली');e.rec=m.rec;
+  e.say=H(`Time for your ${m.purpose?m.purpose+' ':''}medicine. ${m.name}, ${m.dose} ${m.unit}.`,`${m.purpose?m.purpose+' की ':''}दवा का समय हो गया है। ${m.name}, ${m.dose} ${UH[m.unit]||m.unit}।`);
+  e.onDone=()=>{L(td()).m[d.id+'|'+d.t]='taken';save()}}
+ if(d.k==='g'){e.btn='✔ '+H('Done','हो गया');e.onDone=()=>{L(td()).g[d.id]=1;save()}}
+ return e}
+function medTick(n){const td=ymd(n);
+ const dh=S.dhyan;if(dh.on&&!ringing&&due(dh.time,n,180)&&!S.fired['dh'+td]&&!(L(td).d>0)){S.fired['dh'+td]=1;save();ring('🧘 '+H('Meditation time','ध्यान का समय'),S.set.sound,S.set.vib,null,mkEx({k:'dh'}))}
+ S.meds.forEach(m=>{if(!m.on||!medActive(m,td))return;medTimes(m).forEach(t=>{const key=m.id+'|'+t,fk='md'+key+td;if(!ringing&&due(t,n,180)&&!S.fired[fk]&&!L(td).m[key]){S.fired[fk]=1;save();ring('💊 '+(m.purpose||m.name),S.set.sound,S.set.vib,null,mkEx({k:'md',id:m.id,t}))}})});
+ S.goals.forEach(g=>{const fk='g'+g.id+td;if(g.time&&!ringing&&due(g.time,n,60)&&!S.fired[fk]&&!L(td).g[g.id]){S.fired[fk]=1;save();ring('🎯 '+g.title,S.set.sound,S.set.vib,null,mkEx({k:'g',id:g.id}))}})}
+function startMed(min){mStart=Date.now();mEnd=mStart+min*60000;const el=document.createElement('div');el.className='ring';el.id='medt';
+ el.innerHTML=`<div style="font-size:20px">🧘 ${H('Breathe in… breathe out','सांस अंदर… सांस बाहर')}</div><div style="width:150px;height:150px;border-radius:50%;background:radial-gradient(#8b5cf6,#2f6bff);animation:br 8s infinite ease-in-out"></div><div class="clock" id="mt" style="font-size:64px"></div><button class="s" data-mstop>${H('Stop','रोकें')}</button>`;
+ document.body.appendChild(el);const u=()=>{const s=Math.max(0,Math.round((mEnd-Date.now())/1000));$('#mt').textContent=pad(Math.floor(s/60))+':'+pad(s%60);if(s<=0)endMed(true)};u();mT=setInterval(u,500)}
+function endMed(full){clearInterval(mT);const mins=Math.round((Math.min(Date.now(),mEnd)-mStart)/60000);$('#medt')?.remove();if(mins>0){L(ymd(new Date())).d+=mins;save()}if(full){[0,900,1800].forEach(t=>setTimeout(()=>tone('Bell'),t))}toast(mins>0?'🧘 '+mins+' min ✔ '+quote():'');render()}
+/* voice recording */
+let mr,ch;
+async function recToggle(btn){if(mr&&mr.state==='recording'){mr.stop();return}
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:true});mr=new MediaRecorder(st);ch=[];mr.ondataavailable=e=>ch.push(e.data);
+  mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const fr=new FileReader();fr.onload=()=>{document.querySelector('input[name=rec]').value=fr.result;$('#recst').textContent='Voice saved ✔';btn.textContent='🎙 Re-record'};fr.readAsDataURL(new Blob(ch,{type:mr.mimeType}))};
+  mr.start();btn.textContent='⏹ Stop (max 15s)';setTimeout(()=>mr.state==='recording'&&mr.stop(),15000)}catch(e){toast('Microphone permission needed')}}
+const recUI=v=>`<div class="row"><button type="button" data-rec>🎙 ${v?'Re-record':'Record my voice'}</button><button type="button" class="s" data-recplay>▶</button><button type="button" class="s" data-recclr>✕</button></div><div class="mu" id="recst">${v?'Voice saved ✔':'Default sound'}</div><div class="mu">${H('Say e.g. "Time for fever medicine, 5 ml"','बोलें: "बुखार की दवा का समय, 5 एम एल"')}</div><input type="hidden" name="rec" value="${v||''}">`;
+/* forms */
+function medForm(m){const d=m||{id:uid(),name:'',purpose:'',dose:5,unit:'ml',t1:'08:00',t2:'',t3:'',start:ymd(new Date()),days:0,rec:'',notes:'',on:true};askNotif();
+ sheet(m?T('edit'):H('Add medicine','दवा जोड़ें'),[['name','Medicine name','text'],['purpose','For what (e.g. Bukhar / Fever)','text'],['dose','Dose amount','number'],['unit','Unit','select',['ml','tablet','mg','drops']],['t1','Time 1','time'],['t2','Time 2 (optional)','time'],['t3','Time 3 (optional)','time'],['start','Start date','date'],['days','Course days (0 = ongoing)','number'],['rec','Voice reminder','rec'],['notes','Notes (e.g. after food)','text']],d,o=>{o.name=o.name||'Dawa';o.t1=o.t1||'08:00';o.dose=+o.dose||0;o.days=+o.days||0;Object.assign(d,o);d.on=true;if(!m)S.meds.push(d)})}
+const dhForm=()=>sheet(H('Meditation','ध्यान'),[['time','Daily time','time'],['dur','Minutes','number'],['rec','My voice recording (optional)','rec']],S.dhyan,o=>{o.dur=+o.dur||10;Object.assign(S.dhyan,o)});
+function goalForm(g){const d=g||{id:uid(),title:'',time:''};askNotif();sheet(g?T('edit'):H('Add daily goal','रोज़ का लक्ष्य'),[['title','Daily goal (e.g. Walk 30 min)','text'],['time','Reminder time (optional)','time']],d,o=>{o.title=o.title||'Goal';Object.assign(d,o);if(!g)S.goals.push(d)})}
+function lifeForm(g){const d=g||{id:uid(),title:'',why:'',date:'',p:0,s:ymd(new Date())};sheet(g?T('edit'):H('Add life goal','जीवन का लक्ष्य'),[['title','Goal','text'],['why','Why it matters to me','text'],['date','Target date','date'],['p','Progress % (0-100)','number']],d,o=>{o.title=o.title||'Goal';o.p=Math.max(0,Math.min(100,+o.p||0));Object.assign(d,o);if(!g)S.life.push(d)})}
+/* views */
+const bar=p=>`<div style="height:10px;border-radius:6px;background:var(--ln);overflow:hidden;margin:6px 0"><div style="height:100%;width:${p}%;background:linear-gradient(90deg,var(--ac),var(--pu))"></div></div>`;
+function homeExtra(){const td=ymd(new Date()),l=L(td),p=[];S.meds.forEach(m=>{if(m.on&&medActive(m,td))medTimes(m).forEach(t=>p.push({m,t,k:m.id+'|'+t,s:l.m[m.id+'|'+t]}))});p.sort((a,b)=>a.t.localeCompare(b.t));
+ return `<div class="card" style="background:linear-gradient(135deg,var(--ac),var(--pu));color:#fff;border:0"><div class="g">${quote()}</div></div>
+ <div class="card"><div class="g"><b>🧘 ${H('Meditation','ध्यान')}</b><div class="mu">${S.dhyan.on?fmt(S.dhyan.time)+' · '+S.dhyan.dur+' min':'Off'} · ${l.d>0?'✔ '+l.d+' min':H('pending','बाकी')} · 🔥 ${streak()}</div></div><button data-dh="go">▶</button></div>
+ <h2>💊 ${H("Today's medicines",'आज की दवा')}</h2>${p.map(x=>`<div class="card"><div class="g"><b>${esc(x.m.purpose||x.m.name)}</b><div class="mu">${esc(x.m.name)} · ${x.m.dose} ${x.m.unit} · ${fmt(x.t)}</div></div>${x.s?'<span>✔</span>':`<button data-tk="${x.k}">✔ ${H('Taken','ली')}</button>`}</div>`).join('')||`<div class="mu">${T('nothing')}</div>`}`}
+function viewMed(){const td=ymd(new Date()),l=L(td),dh=S.dhyan;
+ const cards=S.meds.map(m=>`<div class="card"><div class="g"><b>${esc(m.name)}</b> <span class="mu">${m.purpose?'· '+esc(m.purpose):''}</span><div class="mu">${m.dose} ${m.unit} · ${medTimes(m).map(t=>(l.m[m.id+'|'+t]?'✔ ':'⏰ ')+fmt(t)).join('  ')}</div><div class="mu">${m.days?m.days+' day course from '+m.start:H('ongoing','लगातार')}${m.notes?' · '+esc(m.notes):''}${m.rec?' · 🎙':''}</div></div><button class="i" data-em="${m.id}">✎</button><button class="i" data-dm="${m.id}">🗑</button><button class="sw ${m.on?'on':''}" data-tm="${m.id}"></button></div>`).join('');
+ return `<h2 style="margin-top:0">🧘 ${H('Daily meditation','रोज़ का ध्यान')}</h2><div class="card"><div class="g"><div class="big">${fmt(dh.time)}</div><div class="mu">${dh.dur} min · 🔥 ${streak()} ${H('day streak','दिन लगातार')} · ${l.d} min ${H('today','आज')}${dh.rec?' · 🎙':''}</div></div><button class="sw ${dh.on?'on':''}" data-dh="on"></button></div><div class="row"><button data-dh="go">▶ ${H('Start now','अभी शुरू')}</button><button class="s" data-dh="set">✎ ${T('edit')}</button></div>
+ <h2>💊 ${H('Medicines','दवाइयाँ')}</h2><button data-am>+ ${H('Add medicine','दवा जोड़ें')}</button>${cards}`}
+function viewGoals(){const td=ymd(new Date()),l=L(td),tot=S.goals.length+1;
+ const pct=d=>{const x=S.log[d]||{},g=x.g||{};return Math.round((((x.d||0)>0?1:0)+S.goals.filter(q=>g[q.id]).length)/tot*100)};
+ const pc=pct(td),wk=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return pct(ymd(d))});
+ const life=S.life.map(g=>{let pace='';if(g.date){const a=pd(g.s).getTime(),b=pd(g.date).getTime(),tt=Math.max(1,b-a),ex=Math.min(100,Math.max(0,(Date.now()-a)/tt*100)),left=Math.ceil((b-Date.now())/864e5);
+   pace=`${left>=0?left+' '+H('days left','दिन बाकी'):H('Date passed','तारीख निकल गई')} · `+(g.p>=ex?H('ahead of pace ✔','समय से आगे ✔'):H(Math.round(ex-g.p)+'% behind: do a little more today',Math.round(ex-g.p)+'% पीछे: आज थोड़ा और करें'))}
+  return `<div class="card" style="display:block"><div style="display:flex;gap:8px;align-items:center"><div class="g"><b>${esc(g.title)}</b>${g.why?`<div class="mu">${esc(g.why)}</div>`:''}</div><button class="i" data-el="${g.id}">✎</button><button class="i" data-dl="${g.id}">🗑</button></div>${bar(g.p)}<div class="mu"><b>${g.p}%</b> ${H('done','पूरा')} · ${100-g.p}% ${H('to go','बाकी')}${pace?' · '+pace:''}</div><input type="range" min="0" max="100" value="${g.p}" data-lp="${g.id}" aria-label="progress"></div>`}).join('');
+ return `<h2 style="margin-top:0">🎯 ${H('Daily goals','आज के लक्ष्य')}</h2><div class="card" style="display:block"><div class="big">${pc}%</div>${bar(pc)}<div class="mu">${pc===100?H('Shabaash! All goals done today 🎉','शाबाश! आज सब पूरा 🎉'):pc>=50?H('More than half done. Keep going!','आधे से ज़्यादा हो गया, चलते रहो!'):H('Take one small step right now.','अभी एक छोटा कदम लो।')}</div><div style="display:flex;gap:4px;align-items:flex-end;height:44px;margin-top:8px">${wk.map(v=>`<div style="flex:1;height:${Math.max(4,v*.44)}px;background:var(--pu);border-radius:4px;opacity:.8"></div>`).join('')}</div><div class="mu">${H('Last 7 days','पिछले 7 दिन')}</div></div>
+ <div class="card"><div class="g">🧘 ${H('Meditation','ध्यान')}</div><span>${l.d>0?'✔':'—'}</span></div>
+ ${S.goals.map(g=>`<div class="card"><button class="sw ${l.g[g.id]?'on':''}" data-gc="${g.id}"></button><div class="g">${esc(g.title)}<div class="mu">${g.time?fmt(g.time):''}</div></div><button class="i" data-eg="${g.id}">✎</button><button class="i" data-dg="${g.id}">🗑</button></div>`).join('')}<button data-ag>+ ${H('Daily goal','रोज़ का लक्ष्य')}</button>
+ <h2>🏔 ${H('Life goals','जीवन के लक्ष्य')}</h2><div class="card" style="background:linear-gradient(135deg,var(--ac),var(--pu));color:#fff;border:0"><div class="g">${quote()}</div></div>${life}<button data-al>+ ${H('Life goal','जीवन का लक्ष्य')}</button>`}
+document.addEventListener('click',e=>{const d=e.target.closest('[data-rec],[data-recplay],[data-recclr],[data-dh],[data-tk],[data-am],[data-em],[data-dm],[data-tm],[data-ag],[data-gc],[data-eg],[data-dg],[data-al],[data-el],[data-dl],[data-mstop]');if(!d)return;const x=d.dataset,td=ymd(new Date()),rf=()=>{save();render()},cf=H('Delete?','हटाना है?');
+ if('rec' in x)recToggle(d);
+ else if('recplay' in x){const v=document.querySelector('input[name=rec]').value;if(v)new Audio(v).play().catch(()=>{})}
+ else if('recclr' in x){document.querySelector('input[name=rec]').value='';$('#recst').textContent='Default sound'}
+ else if('dh' in x){x.dh==='on'?(S.dhyan.on=!S.dhyan.on,rf()):x.dh==='set'?dhForm():startMed(S.dhyan.dur)}
+ else if('tk' in x){L(td).m[x.tk]='taken';rf();toast('✔')}
+ else if('am' in x)medForm();else if('em' in x)medForm(S.meds.find(m=>m.id===x.em));
+ else if('dm' in x){if(confirm(cf)){S.meds=S.meds.filter(m=>m.id!==x.dm);rf()}}
+ else if('tm' in x){const m=S.meds.find(m=>m.id===x.tm);m.on=!m.on;rf()}
+ else if('ag' in x)goalForm();else if('eg' in x)goalForm(S.goals.find(g=>g.id===x.eg));
+ else if('dg' in x){if(confirm(cf)){S.goals=S.goals.filter(g=>g.id!==x.dg);rf()}}
+ else if('gc' in x){const l=L(td);l.g[x.gc]=l.g[x.gc]?0:1;rf();if(l.g[x.gc])toast(quote())}
+ else if('al' in x)lifeForm();else if('el' in x)lifeForm(S.life.find(g=>g.id===x.el));
+ else if('dl' in x){if(confirm(cf)){S.life=S.life.filter(g=>g.id!==x.dl);rf()}}
+ else if('mstop' in x)endMed(false)});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.lp){const g=S.life.find(q=>q.id===t.dataset.lp);g.p=+t.value;save();render();toast(g.p>=100?H('Goal complete! 🎉','लक्ष्य पूरा! 🎉'):quote())}});
+document.addEventListener('visibilitychange',()=>{lock();tick()});window.addEventListener('focus',tick);lock();
+['click','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();ctx.resume()}catch(e){}},{once:true}));
+
+/* ===== Native Android bridge (active only inside the Capacitor app) ===== */
+const NA=(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?window.Capacitor.Plugins.VikkaAlarm:null;
+const hash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%2147483647||1};
+function buildList(){const out=[],now=Date.now(),push=(k,at,t,b)=>{if(at>now)out.push({id:hash(k),at,title:t,body:b||''})};
+ for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()+i);d.setHours(0,0,0,0);const td=ymd(d),at=t=>{const[h,m]=t.split(':').map(Number);return new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,m).getTime()};
+  S.alarms.forEach(a=>{if(a.on&&a.rep!=='snooze'&&alarmOn(a,d))push('a'+a.id+td,at(a.time),a.title||'Alarm','⏰ '+fmt(a.time))});
+  S.meds.forEach(m=>{if(m.on&&medActive(m,td))medTimes(m).forEach(t=>{if(!(i===0&&(S.log[td]||{}).m&&S.log[td].m[m.id+'|'+t]))push('m'+m.id+t+td,at(t),'💊 '+(m.purpose||m.name),m.name+' · '+m.dose+' '+m.unit)})});
+  if(S.dhyan.on)push('dh'+td,at(S.dhyan.time),'🧘 Meditation',S.dhyan.dur+' min');
+  S.events.forEach(e=>{if(eventOn(e,d))(e.rem||[]).forEach(r=>push('e'+e.id+td+r,at(e.time)-r*60000,'📅 '+e.title,e.cat))});
+  S.goals.forEach(g=>{if(g.time)push('g'+g.id+td,at(g.time),'🎯 '+g.title,'')});
+  S.tasks.forEach(t=>{if(!t.done&&t.date===td)push('t'+t.id,at(t.time||'09:00'),'✅ '+t.title,'')})}
+ S.alarms.filter(a=>a.rep==='snooze').forEach(a=>push('s'+a.id,a.snoozeAt,a.title,'Snooze'));
+ return out.sort((a,b)=>a.at-b.at).slice(0,200)}
+let nsT;function nativeSync(){if(!NA)return;clearTimeout(nsT);nsT=setTimeout(()=>{try{NA.sync({items:buildList()})}catch(e){}},400)}
+if(NA){try{NA.requestNotif()}catch(e){}NA.status().then(r=>{if(!r.exact&&confirm(H('For on-time alarms, allow "Alarms & reminders" for Vikka. Open settings?','समय पर अलार्म के लिए Vikka को "Alarms & reminders" की अनुमति दें। सेटिंग्स खोलें?')))NA.openExactSettings()}).catch(()=>{});nativeSync()}
+
+render();setInterval(tick,1000);
+// missed alarms: today's alarms in the last 60 min that never fired
+(()=>{const n=new Date();S.alarms.forEach(a=>{if(!a.on||a.rep==='snooze'||!alarmOn(a,n))return;const[h,m]=a.time.split(':').map(Number),at=new Date(n.getFullYear(),n.getMonth(),n.getDate(),h,m);
+ const key=a.id+ymd(n)+pad(h)+pad(m);if(at<n&&n-at<3600000&&!S.fired[key]){S.fired[key]=1;save();toast(T('missed')+': '+(a.title||fmt(a.time)))}})})();
+</script><button id="ins" hidden style="position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:30;padding:9px 14px">⬇ Install app</button>
+<script>
+let dp=null;const ib=document.getElementById('ins');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.hidden=false});
+ib.onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;ib.hidden=true};
+window.addEventListener('appinstalled',()=>{ib.hidden=true});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
