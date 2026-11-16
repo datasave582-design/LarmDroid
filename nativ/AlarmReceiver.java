@@ -8,7 +8,6 @@ import android.os.Build;
 public class AlarmReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context c, Intent in) {
-    if (MainActivity.foreground) return; // app is open: the web ring screen handles it
     AlarmPlugin.channel(c);
     int id = in.getIntExtra("id", 0);
     Intent open = new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);

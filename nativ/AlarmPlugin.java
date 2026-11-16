@@ -85,6 +85,12 @@ public class AlarmPlugin extends Plugin {
   }
 
   @PluginMethod
+  public void clear(PluginCall call) {
+    ((NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE)).cancelAll();
+    call.resolve();
+  }
+
+  @PluginMethod
   public void status(PluginCall call) {
     JSObject r = new JSObject();
     r.put("exact", canExact(getContext()));
