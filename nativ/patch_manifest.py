@@ -1,6 +1,6 @@
 p='android/app/src/main/AndroidManifest.xml';s=open(p,encoding='utf-8').read()
 if 'VikkaAlarm' not in s:
-    perms=''.join(f'    <uses-permission android:name="android.permission.{x}"{y}/>\n' for x,y in [('POST_NOTIFICATIONS',''),('SCHEDULE_EXACT_ALARM',' android:maxSdkVersion="32"'),('USE_EXACT_ALARM',''),('RECEIVE_BOOT_COMPLETED',''),('USE_FULL_SCREEN_INTENT',''),('VIBRATE',''),('WAKE_LOCK',''),('RECORD_AUDIO',''),('MODIFY_AUDIO_SETTINGS','')])
+    perms=''.join(f'    <uses-permission android:name="android.permission.{x}"{y}/>\n' for x,y in [('POST_NOTIFICATIONS',''),('SCHEDULE_EXACT_ALARM',' android:maxSdkVersion="32"'),('USE_EXACT_ALARM',''),('RECEIVE_BOOT_COMPLETED',''),('USE_FULL_SCREEN_INTENT',''),('VIBRATE',''),('WAKE_LOCK',''),('RECORD_AUDIO',''),('MODIFY_AUDIO_SETTINGS',''),('ACCESS_FINE_LOCATION',''),('ACCESS_COARSE_LOCATION','')])
     rec='''    <!-- VikkaAlarm -->
     <receiver android:name=".AlarmReceiver" android:exported="false"/>
     <receiver android:name=".BootReceiver" android:exported="true">
